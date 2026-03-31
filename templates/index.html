@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Language Detector</title>
+</head>
+<body>
+
+    <h2>Language Detector</h2>
+
+    <input type="text" id="textInput" placeholder="Enter text here" size="50">
+    <button onclick="detectLanguage()">Detect</button>
+
+    <p id="result"></p>
+
+    <script>
+        async function detectLanguage() {
+            const text = document.getElementById("textInput").value;
+
+            const response = await fetch("/detect", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                document.getElementById("result").innerText = "Error: " + data.error;
+                return;
+            }
+
+            document.getElementById("result").innerText =
+                `Language: ${data.language} (${data.code}) | Confidence: ${data.confidence}`;
+        }
+</script>
+
+</body>
+</html>
