@@ -1,0 +1,129 @@
+# -------- LANGUAGE SERVICE --------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: language-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: language-service
+  template:
+    metadata:
+      labels:
+        app: language-service
+    spec:
+      imagePullSecrets:
+      - name: acr-secret
+      containers:
+      - name: language-service
+        image: langdetectoracr31810.azurecr.io/lang-detector:v3
+        ports:
+        - containerPort: 5000
+        env:
+        - name: LANGUAGE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: LANGUAGE_ENDPOINT
+
+        - name: LANGUAGE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: LANGUAGE_KEY
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: language-service
+spec:
+  selector:
+    app: language-service
+  ports:
+    - port: 5000
+      targetPort: 5000
+
+# -------- SENTIMENT SERVICE --------
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentiment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sentiment-service
+  template:
+    metadata:
+      labels:
+        app: sentiment-service
+    spec:
+      imagePullSecrets:
+      - name: acr-secret
+      containers:
+      - name: sentiment-service
+        image: langdetectoracr31810.azurecr.io/sentiment-service:v1
+        ports:
+        - containerPort: 5000
+        env:
+        - name: LANGUAGE_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: LANGUAGE_ENDPOINT
+
+        - name: LANGUAGE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: LANGUAGE_KEY
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentiment-service
+spec:
+  selector:
+    app: sentiment-service
+  ports:
+    - port: 5000
+      targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-service
+  template:
+    metadata:
+      labels:
+        app: frontend-service
+    spec:
+      imagePullSecrets:
+      - name: acr-secret
+      containers:
+      - name: frontend-service
+        image: langdetectoracr31810.azurecr.io/frontend-service:v1
+        ports:
+        - containerPort: 5000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend-service
+  ports:
+    - port: 80
+      targetPort: 5000

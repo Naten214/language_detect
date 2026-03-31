@@ -1,39 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Language Detector</title>
+    <title>AI Language Detector</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #00c6ff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0072ff;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        .loading {
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    </style>
 </head>
+
 <body>
 
-    <h2>Language Detector</h2>
+<div class="container">
+    <h1>🌍 AI Language Detector</h1>
+    <p>Enter any text to detect its language</p>
 
-    <input type="text" id="textInput" placeholder="Enter text here" size="50">
-    <button onclick="detectLanguage()">Detect</button>
+    <input 
+        type="text" 
+        id="textInput" 
+        placeholder="Type a word or sentence (e.g. Hello, ሰላም, Afaan Oromo...)"
+    >
 
-    <p id="result"></p>
+    <button onclick="detectLanguage()">Detect Language</button>
 
-    <script>
-        async function detectLanguage() {
-            const text = document.getElementById("textInput").value;
+    <div class="loading" id="loading"></div>
+    <div class="result" id="result"></div>
+</div>
 
-            const response = await fetch("/detect", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ text: text })
-            });
+<script>
+async function detectLanguage() {
+    const text = document.getElementById("textInput").value;
+    const resultDiv = document.getElementById("result");
+    const loadingDiv = document.getElementById("loading");
 
-            const data = await response.json();
+    if (!text) {
+        resultDiv.innerText = "⚠️ Please enter some text.";
+        return;
+    }
 
-            if (data.error) {
-                document.getElementById("result").innerText = "Error: " + data.error;
-                return;
-            }
+    loadingDiv.innerText = "Detecting...";
+    resultDiv.innerText = "";
 
-            document.getElementById("result").innerText =
-                `Language: ${data.language} (${data.code}) | Confidence: ${data.confidence}`;
+    try {
+        const response = await fetch("/detect", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            resultDiv.innerText = "❌ Error: " + data.error;
+        } else {
+            resultDiv.innerHTML = `
+                <strong>${data.language}</strong> (${data.code}) <br>
+                Confidence: ${(data.confidence * 100).toFixed(2)}%
+            `;
         }
+
+    } catch (err) {
+        resultDiv.innerText = "❌ Request failed.";
+    }
+
+    loadingDiv.innerText = "";
+}
 </script>
 
 </body>
